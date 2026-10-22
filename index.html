@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auditoría Forense de CI · Nivel 1</title>
+<meta name="description" content="Auditoría forense de CI: mide el instrumento, no el código. Caso de estudio sobre tt-metal y piloto de interés para un repositorio y un snapshot.">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 3rem 1.25rem 5rem;
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #0d1117; color: #e6edf3;
+  }
+  main { max-width: 46rem; margin: 0 auto; }
+  h1 { font-size: 1.85rem; line-height: 1.25; margin: 0 0 .75rem; }
+  h2 { font-size: 1.15rem; margin: 2.5rem 0 .75rem; letter-spacing: .01em; }
+  p { margin: 0 0 1rem; color: #c9d1d9; }
+  .lede { font-size: 1.1rem; color: #e6edf3; }
+  .tag { display: inline-block; font-size: .75rem; letter-spacing: .08em; text-transform: uppercase;
+         color: #7ee787; border: 1px solid #2d4a35; border-radius: 999px; padding: .2rem .6rem; margin-bottom: 1.5rem; }
+  table { width: 100%; border-collapse: collapse; margin: .5rem 0 1rem; font-size: .95rem; }
+  th, td { text-align: left; padding: .5rem .25rem; border-bottom: 1px solid #21262d; vertical-align: top; }
+  th { color: #8b949e; font-weight: 600; width: 46%; }
+  td b { color: #e6edf3; }
+  .box { border: 1px solid #21262d; border-radius: 10px; padding: 1rem 1.25rem; background: #11161d; margin: 1rem 0; }
+  .box h3 { margin: .1rem 0 .6rem; font-size: 1rem; color: #e6edf3; }
+  .box ul { margin: 0; padding-left: 1.1rem; color: #c9d1d9; }
+  .box li { margin: .35rem 0; }
+  .offer { border: 1px solid #2d4a35; background: #0f1a13; border-radius: 10px; padding: 1.25rem; margin: 1.5rem 0; }
+  .price { font-size: 1.6rem; font-weight: 700; color: #7ee787; margin: 0 0 .35rem; }
+  .fields { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8rem;
+            background: #161b22; border: 1px solid #21262d; border-radius: 8px;
+            padding: .8rem 1rem; overflow-x: auto; color: #c9d1d9; white-space: pre; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .btn { display: inline-block; background: #238636; color: #fff; font-weight: 600;
+         padding: .7rem 1.2rem; border-radius: 8px; margin: .25rem .5rem .25rem 0; }
+  .btn:hover { background: #2ea043; text-decoration: none; }
+  .btn.alt { background: #21262d; color: #e6edf3; }
+  .btn.alt:hover { background: #30363d; }
+  footer { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid #21262d;
+           font-size: .85rem; color: #8b949e; }
+</style>
+</head>
+<body>
+<main>
+
+  <span class="tag">Metrología de CI</span>
+  <p style="margin:-1rem 0 1.5rem;font-size:.85rem"><a href="./index.en.html" hreflang="en" lang="en">English</a></p>
+
+  <h1>El rollup de GitHub corta a 100 checks.<br>Si el rojo vive en el check 101, tu pipeline se lee verde.</h1>
+
+  <p class="lede">
+    Una auditoría forense de CI no mide tu código: mide el <b>instrumento</b> con el que decides si tu código está bien.
+    No confía en el rollup de GitHub; lo re-audita con anclas atadas al <code>head.sha</code>, límite declarado y control negativo.
+  </p>
+
+  <h2>Caso de estudio · tt-metal (Tenstorrent)</h2>
+  <p>Remedido el 2026-10-21 sobre <code>tenstorrent/tt-metal</code>. Cada cifra lleva su denominador, y lo que no está probado se dice.</p>
+
+  <table>
+    <tr><th>PRs abiertos</th><td><b>1.602</b> — <code>total_count</code> del Search de GitHub a <code>2026-10-22T03:36:04Z</code> · instantánea, no censo (los 1.000 anteriores eran un tope de paginación; los 1.608 no tenían portador y se retiran)</td></tr>
+    <tr><th>Inventariados con shard de simulación visible</th><td><b>240</b> — censo congelado, portador <code>crudos/denominador_shard_20261021.json</code></td></tr>
+    <tr><th>Falsos verdes estrictos</th><td><b>34</b> = <b>14,2%</b> de los 240 inventariados · <b>28,1%</b> de los 121 rojos</td></tr>
+    <tr><th>Rojos con shard visible</th><td><b>121</b></td></tr>
+    <tr><th>Rojos visibles en la ventana (muestra de logs)</th><td><b>115</b> — el 114/115 de abajo es muestra de esa ventana, no de los 121</td></tr>
+    <!-- HUELLA-RETIRAR-1608-LANDING-ES-20261021 -->
+    <tr><th>Logs de job clasificados</th><td><b>114</b> de 115 · <code>tt_fatal</code> <b>37</b> · <code>assert</code> <b>37</b> (de los cuales <b>27</b> son signed-zero) · <code>timeout</code> <b>35</b></td></tr>
+    <tr><th>PRs cuyo diff no toca el archivo atribuido al fallo</th><td><b>114 de 115</b> — auditoría de diffs separada · muestra desacople, <b>no</b> prueba que esos PRs sean víctimas</td></tr>
+  </table>
+
+  <p><b>Delta declarado.</b> Una corrida publicada antes dio 236 / 115 / 33 y no conservó crudo. El censo congelado da <b>240 / 121 / 34</b> (+4 / +6 / +1). La diferencia no se reconcilia a mano, y el universo no la explica: el censo lista menos PRs (1.598) que la instantánea (1.602) y aun así cuenta más rojos.</p>
+  <!-- HUELLA-LANDING-CENSO-PORTADOR-ES-20261021 -->
+
+  <p>
+    El mecanismo que da valor al método: en <b>34</b> PRs el rollup leía verde mientras el shard rojo estaba más allá de la ventana de la API.
+    Un barrido que solo lee la primera ventana reporta un <b>cero falso</b>. Ese cero falso se detectó primero en casa.
+  </p>
+
+  <div class="box">
+    <h3>Lo que este caso <u>no</u> afirma</h3>
+    <ul>
+      <li>No afirma que el rojo sea «infraestructura bloqueando código». La atribución kernel-vs-test del cluster de signed-zero está <b>sin resolver</b>: el inspector entrega <code>INDECIDIBLE</code>.</li>
+      <li>No afirma 115 bugs distintos. Tres mecanismos concentran el <b>86%</b> de los 114 clasificados; el criterio de «sistémico» se declara, no se decora.</li>
+      <li>El cluster de <code>TT_FATAL</code> quedó arreglado aguas arriba el 2026-10-20 (#61470): son ramas <b>13–65 commits atrás</b>, base rancia, no defecto sin arreglar.</li>
+      <li>La cifra «143 falsos verdes» de la corrida anterior <b>no reproduce</b>. Se publica 34 porque es lo que se puede re-auditar hoy, desde un portador.</li>
+    </ul>
+  </div>
+
+  <h2>La oferta · Asiento Nivel 1</h2>
+  <div class="offer">
+    <p class="price">USD 500 <span style="font-size:.85rem;font-weight:400;color:#8b949e">(precio propuesto)</span></p>
+    <p style="margin-bottom:.75rem">
+      Auditoría forense de CI para <b>un repositorio y un snapshot</b>: inventario con shard visible, conteo estricto de falsos verdes con su denominador,
+      censo de rojos desde el log del job, y el límite declarado de cada cifra — con lo <code>INDECIDIBLE</code> dicho como tal.
+    </p>
+    <p style="margin-bottom:0">
+      <b>Sin cobro y sin reserva en esta etapa.</b> El correo solo expresa interés; no aparta cupo ni compromete entrega.
+      Solo repositorios públicos.
+    </p>
+  </div>
+
+  <div class="fields" aria-label="contrato de la petición">TARGET      repo público (un snapshot, un head.sha)
+LINEAS_PRE  declarado antes de correr
+BLOB_PRE    declarado antes de correr
+HUELLA      se emite una sola vez por objeto auditado
+SI EL BLOB NO CAMBIA, NO SE COBRA OTRA VEZ.</div>
+
+  <p style="margin-top:1.5rem">
+    <a class="btn" href="mailto:alexis_romtz@hotmail.com?subject=Auditor%C3%ADa%20CI&amp;body=Rol%3A%20%0AOrganizaci%C3%B3n%3A%20%0ARepositorio%20p%C3%BAblico%3A%20%0AConfirmo%20que%20vi%20el%20precio%20propuesto%20de%20USD%20500%3A%20s%C3%AD">Solicitar seguimiento</a>
+    <a class="btn alt" href="https://github.com/alexisromtz-lab/platino-labs/tree/main/auditor-toolkit-20261021/case_studies/tt-metal.md">Leer el caso de estudio completo</a>
+    <a class="btn alt" href="https://github.com/alexisromtz-lab/platino-labs/blob/main/auditor-toolkit-20261021/sample_reports/tt-metal_sample.md">Ver el informe de muestra (el entregable)</a>
+    <a class="btn alt" href="https://github.com/alexisromtz-lab/platino-labs/tree/main/auditor-toolkit-20261021">Ver el toolkit (Open Source)</a>
+  </p>
+  <p style="font-size:.9rem;color:#8b949e;margin-top:.75rem">
+    Asunto del correo: <b>«Auditoría CI»</b> · incluye tu rol, tu organización, confirmación del precio y el enlace a un repositorio público.
+    No envíes enlaces privados ni credenciales.
+  </p>
+
+  <footer>
+    Un reporte sin límite declarado se lee como opinión. Un reporte con límite declarado se puede re-auditar.
+    Eso es todo lo que este trabajo ofrece.
+    <br>Licencias: código Apache-2.0 · documentos CC BY 4.0.
+  </footer>
+
+</main>
+<!-- HUELLA-SUBIDA-ESCAPARATE-20261021 -->
+<!-- HUELLA-ESCAPARATE-BILINGUE-20261021 -->
+</body>
+</html>
