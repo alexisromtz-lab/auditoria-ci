@@ -15,7 +15,7 @@ al producirla.
 | `LÍNEAS_PRE` | no aplica (repo de terceros) | en tu repo, líneas declaradas antes de correr |
 | `BLOB_PRE` | no aplica (repo de terceros) | en tu repo, blob declarado antes de correr |
 | Ventana de medición | 2026-10-21, ~19:46–19:55Z | la fotografía tiene fecha; se re-corre para datarla |
-| Instrumento | `tools/observador_tt_metal_20261020.py --sweep` · `--rojo` · `--blame` | el mismo binario público, sin versión privada |
+| Instrumento | barrido sobre la API de PRs (`--sweep` · `--rojo` · `--blame`) | el mismo binario público, sin versión privada |
 | Errores de API | **0** | una corrida con errores no se publica |
 
 En un asiento de cliente, `BLOB_PRE` y `LÍNEAS_PRE` van en esta cabecera y son lo que se certifica.
@@ -102,7 +102,7 @@ Esta sección es el producto. Cualquiera puede listar rojos; lo que se compra es
    **1** sí (#58101). Es una auditoría de diffs **separada**, y `--rojo` no la calcula. Muestra **desacople**
    entre síntoma y diff; **no prueba** que esos PRs sean víctimas ni que la base esté rota. El `114 de 115`
    queda **retirado**: esa corrida no conservó crudo. Portador:
-   [`crudos/atribucion_diff_79_20261021.json`](../../crudos/atribucion_diff_79_20261021.json).
+   el crudo de la atribución de los 79 diffs (artefacto interno; se entrega con el informe).
    <!-- HUELLA-SAMPLE-ATRIBUCION-DIFF-79-20261022 · gate A2.1 RC 0 · BLOB_PRE 5b57af1cd7c13af7ff170e6ee4c6b4e7b508f65f · LINEAS_PRE 133 -->
 5. **Hueco estructural: los shards sim no corren en `main`.** `main` en `d0ef2f5d` lleva **1.317** check-runs; solo
    **2** tienen un shard sim en el nombre, y ambos están verdes — pero son **otros grupos**. Los 115 rojos viven en
